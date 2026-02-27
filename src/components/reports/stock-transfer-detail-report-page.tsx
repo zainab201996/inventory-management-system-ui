@@ -57,6 +57,12 @@ export function StockTransferDetailReportPage() {
     fetchLookups()
   }, [])
 
+  // Auto-load initial report when page opens
+  useEffect(() => {
+    handleLoadReport(1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const handleLoadReport = async (page = 1) => {
     setLoading(true)
     setError(null)

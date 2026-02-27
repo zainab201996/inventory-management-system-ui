@@ -13,7 +13,7 @@ import { useFundingSources } from '@/hooks/use-funding-sources'
 import { useSettings } from '@/hooks/use-settings'
 import { useBusinessPlanDetails } from '@/hooks/use-business-plan-details'
 import { useBPDDelays } from '@/hooks/use-bpd-delays'
-import { useUsersDepartments } from '@/hooks/use-users-departments'
+import { useDepartments } from '@/hooks/use-departments'
 import { useUserAccess } from '@/hooks/use-user-access'
 import { formatDate, CURRENCY_SYMBOL, cn, getCurrentFinancialYearDates } from '@/lib/utils'
 import { apiClient } from '@/lib/api-client'
@@ -178,15 +178,8 @@ export function ProjectsPage() {
   const [toDate, setToDate] = useState<string>(initialToDate)
   const datesInitialized = useRef(false)
   
-  // Get current user ID for fetching departments
-  const { access } = useUserAccess()
-  const currentUserId = access?.user?.id
-  
-  // Fetch user departments
-  const { userDepartments, loading: departmentsLoading } = useUsersDepartments({ 
-    user_id: currentUserId, 
-    all: true 
-  })
+  // Fetch all departments for filtering
+  const { departments, loading: departmentsLoading } = useDepartments({ all: true })
   
   // Update dates when settings load and initial dates are empty (only once)
   useEffect(() => {
@@ -438,8 +431,8 @@ export function ProjectsPage() {
 
   const getDepartmentNameById = (deptId: number | null | undefined) => {
     if (!deptId) return 'N/A'
-    const userDept = userDepartments.find(ud => ud.department?.dept_id === deptId)
-    return userDept?.department?.name || 'N/A'
+    const dept = departments.find(d => d.dept_id === deptId)
+    return dept?.name || 'N/A'
   }
 
   const getStatusDisplay = (status: number) => {
@@ -868,13 +861,11 @@ export function ProjectsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Departments</SelectItem>
-                    {userDepartments
-                      .filter(ud => ud.department?.dept_id)
-                      .map((ud) => (
-                        <SelectItem key={ud.department!.dept_id} value={ud.department!.dept_id.toString()}>
-                          {ud.department!.name}
-                        </SelectItem>
-                      ))}
+                    {departments.map((dept) => (
+                      <SelectItem key={dept.dept_id} value={dept.dept_id.toString()}>
+                        {dept.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

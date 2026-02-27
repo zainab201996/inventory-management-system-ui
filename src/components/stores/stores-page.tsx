@@ -24,8 +24,8 @@ export function StoresPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingStore, setEditingStore] = useState<Store | null>(null)
-  const [formData, setFormData] = useState({ store_code: '', store_name: '' })
-  const [errors, setErrors] = useState<{ store_code?: string; store_name?: string }>({})
+  const [formData, setFormData] = useState({ store_name: '' })
+  const [errors, setErrors] = useState<{ store_name?: string }>({})
   const [isLoading, setIsLoading] = useState(false)
   const [stores, setStores] = useState<Store[]>([])
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
@@ -66,10 +66,10 @@ export function StoresPage() {
   const handleOpenDialog = (store?: Store) => {
     if (store) {
       setEditingStore(store)
-      setFormData({ store_code: store.store_code, store_name: store.store_name })
+      setFormData({ store_name: store.store_name })
     } else {
       setEditingStore(null)
-      setFormData({ store_code: '', store_name: '' })
+      setFormData({ store_name: '' })
     }
     setErrors({})
     setIsDialogOpen(true)
@@ -78,15 +78,12 @@ export function StoresPage() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false)
     setEditingStore(null)
-    setFormData({ store_code: '', store_name: '' })
+    setFormData({ store_name: '' })
     setErrors({})
   }
 
   const validateForm = () => {
-    const newErrors: { store_code?: string; store_name?: string } = {}
-    if (!formData.store_code.trim()) {
-      newErrors.store_code = 'Store code is required'
-    }
+    const newErrors: { store_name?: string } = {}
     if (!formData.store_name.trim()) {
       newErrors.store_name = 'Store name is required'
     }
@@ -232,18 +229,6 @@ export function StoresPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="store_code">Store Code</Label>
-              <Input
-                id="store_code"
-                value={formData.store_code}
-                onChange={(e) => setFormData({ ...formData, store_code: e.target.value })}
-                className={errors.store_code ? 'border-red-500' : ''}
-              />
-              {errors.store_code && (
-                <p className="text-sm text-red-500 mt-1">{errors.store_code}</p>
-              )}
-            </div>
             <div>
               <Label htmlFor="store_name">Store Name</Label>
               <Input

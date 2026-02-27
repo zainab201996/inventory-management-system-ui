@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useProjectIssuesReport } from '@/hooks/use-project-issues-report'
 import { useProjectTypes } from '@/hooks/use-project-types'
 import { useSettings } from '@/hooks/use-settings'
-import { useUsersDepartments } from '@/hooks/use-users-departments'
+import { useDepartments } from '@/hooks/use-departments'
 import { useUserAccess } from '@/hooks/use-user-access'
 import { formatDate, getCurrentFinancialYearDates, getDurationBetweenDates } from '@/lib/utils'
 import { ProjectIssuesReportFilters } from '@/types'
@@ -95,15 +95,8 @@ export function ProjectIssuesReportPage() {
   const { projectTypes } = useProjectTypes({ all: true })
   const { settings } = useSettings()
   
-  // Get current user ID for fetching departments
-  const { access } = useUserAccess()
-  const currentUserId = access?.user?.id
-  
-  // Fetch user departments
-  const { userDepartments, loading: departmentsLoading } = useUsersDepartments({ 
-    user_id: currentUserId, 
-    all: true 
-  })
+  // Fetch all departments for filtering
+  const { departments, loading: departmentsLoading } = useDepartments({ all: true })
 
   // Set default dates to current financial year when settings load (only once)
   useEffect(() => {
@@ -275,13 +268,11 @@ export function ProjectIssuesReportPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Departments</SelectItem>
-                    {userDepartments
-                      .filter(ud => ud.department?.dept_id)
-                      .map((ud) => (
-                        <SelectItem key={ud.department!.dept_id} value={ud.department!.dept_id.toString()}>
-                          {ud.department!.name}
-                        </SelectItem>
-                      ))}
+                  {departments.map((dept) => (
+                    <SelectItem key={dept.dept_id} value={dept.dept_id.toString()}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
                   </SelectContent>
                 </Select>
               </div>

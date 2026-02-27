@@ -9,7 +9,7 @@ import { useProjectTypes } from '@/hooks/use-project-types'
 import { useProjectTypeDetails } from '@/hooks/use-project-types-detail'
 import { useSteps } from '@/hooks/use-steps'
 import { useUserAccess } from '@/hooks/use-user-access'
-import { useUsersDepartments } from '@/hooks/use-users-departments'
+import { useDepartments } from '@/hooks/use-departments'
 import { formatDate, CURRENCY_SYMBOL, cn, getUserFriendlyApiErrorMessage } from '@/lib/utils'
 import { ProjectType, ProjectTypeDetail, PTSDetail } from '@/types'
 import { Search, Plus, Edit, Trash2, Loader2, Filter, X, ArrowUp, ArrowDown, ArrowUpDown, ChevronRight, Layers, GripVertical, ChevronDown, Hash, Calendar, FileText, List } from 'lucide-react'
@@ -407,7 +407,7 @@ export function ProjectTypesPage() {
   const { steps } = useSteps({ all: true })
   const { access } = useUserAccess()
   const userId = access?.user?.id
-  const { userDepartments, loading: userDepartmentsLoading } = useUsersDepartments({ user_id: userId, all: true })
+  const { departments, loading: departmentsLoading } = useDepartments({ all: true })
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -1646,24 +1646,22 @@ export function ProjectTypesPage() {
                     setCombinedErrors(newErrors)
                   }
                 }}
-                disabled={editingProjectTypeCombined !== null || userDepartmentsLoading}
+                disabled={editingProjectTypeCombined !== null || departmentsLoading}
               >
                 <SelectTrigger className={combinedErrors.department_id ? 'border-red-500' : ''}>
-                  <SelectValue placeholder={userDepartmentsLoading ? "Loading..." : "Select department"} />
+                  <SelectValue placeholder={departmentsLoading ? "Loading..." : "Select department"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {userDepartmentsLoading ? (
+                  {departmentsLoading ? (
                     <div className="p-2 text-sm text-gray-500">Loading departments...</div>
-                  ) : userDepartments.length === 0 ? (
+                  ) : departments.length === 0 ? (
                     <div className="p-2 text-sm text-gray-500">No departments available</div>
                   ) : (
-                    userDepartments
-                      .filter(ud => ud.department?.dept_id)
-                      .map((ud) => (
-                        <SelectItem key={ud.department!.dept_id} value={ud.department!.dept_id.toString()}>
-                          {ud.department!.name}
-                        </SelectItem>
-                      ))
+                    departments.map((dept) => (
+                      <SelectItem key={dept.dept_id} value={dept.dept_id.toString()}>
+                        {dept.name}
+                      </SelectItem>
+                    ))
                   )}
                 </SelectContent>
               </Select>

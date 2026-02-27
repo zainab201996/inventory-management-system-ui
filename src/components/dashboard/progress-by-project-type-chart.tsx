@@ -4,9 +4,9 @@ import dynamic from "next/dynamic";
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useProgressByProjectType } from "@/hooks/use-progress-by-project-type";
-import { useHasPermission, useUserAccess } from "@/hooks/use-user-access";
+import { useHasPermission } from "@/hooks/use-user-access";
 import { useSettings } from "@/hooks/use-settings";
-import { useUsersDepartments } from "@/hooks/use-users-departments";
+import { useDepartments } from "@/hooks/use-departments";
 import { Loader2, ArrowRight, BarChart3, PieChart, FolderKanban, Calendar, Users } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -30,20 +30,13 @@ export default function ProgressByProjectTypeChart() {
   const [chartKey, setChartKey] = useState(0);
   const hasPermission = useHasPermission('progress-by-project-type-report');
   const canViewProjectsSummary = useHasPermission('projects-summary-report');
-  const { access } = useUserAccess();
   const { settings } = useSettings();
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<string>('');
   const [deptIdFilter, setDeptIdFilter] = useState<string>('all');
   
-  // Get current user ID for fetching departments
-  const currentUserId = access?.user?.id;
-  
-  // Fetch user departments
-  const { userDepartments, loading: departmentsLoading } = useUsersDepartments({ 
-    user_id: currentUserId, 
-    all: true 
-  });
+  // Fetch all departments for filtering
+  const { departments, loading: departmentsLoading } = useDepartments({ all: true });
   
   // Set default dates to current financial year
   useEffect(() => {
@@ -447,13 +440,11 @@ export default function ProgressByProjectTypeChart() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Departments</SelectItem>
-              {userDepartments
-                .filter(ud => ud.department?.dept_id)
-                .map((ud) => (
-                  <SelectItem key={ud.department!.dept_id} value={ud.department!.dept_id.toString()}>
-                    {ud.department!.name}
-                  </SelectItem>
-                ))}
+              {departments.map((dept) => (
+                <SelectItem key={dept.dept_id} value={dept.dept_id.toString()}>
+                  {dept.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

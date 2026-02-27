@@ -14,7 +14,6 @@ import { apiClient } from '@/lib/api-client'
 import { useRouter } from 'next/navigation'
 import { ThemeToggleButton } from './theme-toggle-button'
 import { useUserAccess } from '@/hooks/use-user-access'
-import { useUsersDepartments } from '@/hooks/use-users-departments'
 
 interface HeaderProps {
   isSidebarCollapsed: boolean
@@ -24,8 +23,6 @@ interface HeaderProps {
 export function Header({ isSidebarCollapsed, onToggleSidebar }: HeaderProps) {
   const router = useRouter()
   const { access } = useUserAccess()
-  const userId = access?.user?.id
-  const { userDepartments } = useUsersDepartments({ user_id: userId, all: true })
 
   const handleLogout = () => {
     apiClient.logout()
@@ -36,12 +33,7 @@ export function Header({ isSidebarCollapsed, onToggleSidebar }: HeaderProps) {
   const username = access?.user?.username || 'User'
   const roles = access?.roles || []
   const roleNames = roles.map(role => role.role_name).join(', ') || 'User'
-  
-  // Get all department names
-  const departmentNames = userDepartments
-    .filter(ud => ud.department?.name)
-    .map(ud => ud.department!.name)
-  const departmentNamesText = departmentNames.length > 0 ? departmentNames.join(', ') : null
+  const departmentName = access?.user?.department?.name || null
 
   return (
     <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6 dark:border-gray-800 dark:bg-gray-900">
@@ -116,12 +108,12 @@ export function Header({ isSidebarCollapsed, onToggleSidebar }: HeaderProps) {
                   {username}
                 </p>
                 <div className="flex flex-wrap gap-1 mt-0.5">
-                  {departmentNames.length > 0 && (
+                  {departmentName && (
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {departmentNamesText}
+                      {departmentName}
                     </span>
                   )}
-                  {departmentNames.length > 0 && roleNames && (
+                  {departmentName && roleNames && (
                     <span className="text-xs text-gray-400 dark:text-gray-500">•</span>
                   )}
                   {roleNames && (

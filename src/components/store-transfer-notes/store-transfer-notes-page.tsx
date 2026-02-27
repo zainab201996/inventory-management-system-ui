@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { apiClient } from '@/lib/api-client'
 import { formatDate, formatDateForInput } from '@/lib/utils'
-import { StoreTransferNote, Store, Item, CreateStoreTransferNoteDetailData } from '@/types'
+import { StoreTransferNote, Store, Item, CreateStoreTransferNoteDetailData, StockReport } from '@/types'
 import { Search, Plus, Edit, Trash2, Loader2, X, Eye } from 'lucide-react'
 import {
   Dialog,
@@ -56,6 +56,7 @@ export function StoreTransferNotesPage() {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
   const [transferNoteToDelete, setTransferNoteToDelete] = useState<StoreTransferNote | null>(null)
   const { toast } = useToast()
+  const [availableStockByItem, setAvailableStockByItem] = useState<Record<number, number>>({})
 
   const fetchTransferNotes = useCallback(async () => {
     setIsLoading(true)
@@ -105,6 +106,38 @@ export function StoreTransferNotesPage() {
     fetchStores()
     fetchItems()
   }, [fetchTransferNotes, fetchStores, fetchItems])
+
+  useEffect(() => {
+    const fetchAvailableStock = async () => {
+      if (!formData.from_store_id || !formData.date) {
+        setAvailableStockByItem({})
+        return
+      }
+
+      try {
+        const filters = {
+          fromDate: '2000-01-01',
+          toDate: formData.date,
+          store_id: formData.from_store_id,
+        }
+        const response = await apiClient.getStockReport(filters)
+        if (response.success && response.data) {
+          const rows = response.data as StockReport
+          const map: Record<number, number> = {}
+          rows.forEach((row) => {
+            map[row.item_id] = row.closing_qty
+          })
+          setAvailableStockByItem(map)
+        } else {
+          setAvailableStockByItem({})
+        }
+      } catch {
+        setAvailableStockByItem({})
+      }
+    }
+
+    fetchAvailableStock()
+  }, [formData.from_store_id, formData.date])
 
   const filteredTransferNotes = useMemo(() => {
     if (!searchTerm) return transferNotes
@@ -205,6 +238,24 @@ export function StoreTransferNotesPage() {
     if (details.length === 0) {
       newErrors.details = 'At least one detail entry is required'
     }
+
+    if (formData.from_store_id && Object.keys(availableStockByItem).length > 0) {
+      const totalsByItem: Record<number, number> = {}
+      for (const detail of details) {
+        if (!detail.item_id) continue
+        const current = totalsByItem[detail.item_id] || 0
+        totalsByItem[detail.item_id] = current + (detail.qty || 0)
+      }
+
+      for (const [itemIdStr, totalQty] of Object.entries(totalsByItem)) {
+        const itemId = parseInt(itemIdStr, 10)
+        const available = availableStockByItem[itemId]
+        if (available != null && totalQty > available) {
+          newErrors.details = 'Transfer quantity for one or more items exceeds available stock in the selected From Store'
+          break
+        }
+      }
+    }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -291,6 +342,16 @@ export function StoreTransferNotesPage() {
     const store = stores.find(s => s.id === storeId)
     return store ? `${store.store_code} - ${store.store_name}` : 'N/A'
   }
+
+  const availableFromStores = useMemo(
+    () => stores.filter((store) => store.id !== formData.to_store_id),
+    [stores, formData.to_store_id]
+  )
+
+  const availableToStores = useMemo(
+    () => stores.filter((store) => store.id !== formData.from_store_id),
+    [stores, formData.from_store_id]
+  )
 
   return (
     <div className="space-y-6">
@@ -426,13 +487,21 @@ export function StoreTransferNotesPage() {
                 <Label htmlFor="from_store_id">From Store</Label>
                 <Select
                   value={formData.from_store_id.toString()}
-                  onValueChange={(value) => setFormData({ ...formData, from_store_id: parseInt(value) })}
+                  onValueChange={(value) => {
+                    const from_store_id = parseInt(value)
+                    setFormData((prev) => ({
+                      ...prev,
+                      from_store_id,
+                      // If the selected from store matches current to store, reset to store
+                      to_store_id: prev.to_store_id === from_store_id ? 0 : prev.to_store_id,
+                    }))
+                  }}
                 >
                   <SelectTrigger className={errors.from_store_id ? 'border-red-500' : ''}>
                     <SelectValue placeholder="Select store" />
                   </SelectTrigger>
                   <SelectContent>
-                    {stores.map((store) => (
+                    {availableFromStores.map((store) => (
                       <SelectItem key={store.id} value={store.id.toString()}>
                         {store.store_code} - {store.store_name}
                       </SelectItem>
@@ -447,13 +516,21 @@ export function StoreTransferNotesPage() {
                 <Label htmlFor="to_store_id">To Store</Label>
                 <Select
                   value={formData.to_store_id.toString()}
-                  onValueChange={(value) => setFormData({ ...formData, to_store_id: parseInt(value) })}
+                  onValueChange={(value) => {
+                    const to_store_id = parseInt(value)
+                    setFormData((prev) => ({
+                      ...prev,
+                      to_store_id,
+                      // If the selected to store matches current from store, reset from store
+                      from_store_id: prev.from_store_id === to_store_id ? 0 : prev.from_store_id,
+                    }))
+                  }}
                 >
                   <SelectTrigger className={errors.to_store_id ? 'border-red-500' : ''}>
                     <SelectValue placeholder="Select store" />
                   </SelectTrigger>
                   <SelectContent>
-                    {stores.map((store) => (
+                    {availableToStores.map((store) => (
                       <SelectItem key={store.id} value={store.id.toString()}>
                         {store.store_code} - {store.store_name}
                       </SelectItem>

@@ -76,5 +76,11 @@ export function getRoutesForSlug(slug: string): string[] {
  * Check if a route requires permission
  */
 export function requiresPermission(route: string): boolean {
+  // Store Transfer Detail report is currently unrestricted - any authenticated user can access it.
+  // Once backend page slugs/permissions are configured for this report, this special case can be removed.
+  if (route === '/report/stock-transfer-detail') {
+    return false
+  }
+
   return route in ROUTE_PERMISSIONS
 }

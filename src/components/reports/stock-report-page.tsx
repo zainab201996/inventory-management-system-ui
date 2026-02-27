@@ -72,6 +72,12 @@ export function StockReportPage() {
     return map
   }, [rates])
 
+  // Auto-load initial report when page opens
+  useEffect(() => {
+    handleLoadReport()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const handleLoadReport = async () => {
     setLoading(true)
     setError(null)

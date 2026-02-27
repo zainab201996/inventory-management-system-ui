@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useSteps } from '@/hooks/use-steps'
 import { useUserAccess } from '@/hooks/use-user-access'
-import { useUsersDepartments } from '@/hooks/use-users-departments'
+import { useDepartments } from '@/hooks/use-departments'
 import { apiClient } from '@/lib/api-client'
 import { formatDate } from '@/lib/utils'
 import { Step } from '@/types'
@@ -112,9 +112,7 @@ export function StepsPage() {
   const { steps, loading, error, createStep, updateStep, deleteStep } = useSteps({ all: true })
   const { access } = useUserAccess()
   const currentUserId = apiClient.getUserId()
-  const { userDepartments, loading: departmentsLoading, error: departmentsError } = useUsersDepartments({ 
-    user_id: currentUserId || undefined 
-  })
+  const { departments, loading: departmentsLoading, error: departmentsError } = useDepartments({ all: true })
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -541,12 +539,12 @@ export function StepsPage() {
                       <div className="p-2 text-sm text-gray-500">Loading departments...</div>
                     ) : departmentsError ? (
                       <div className="p-2 text-sm text-red-500">Error: {departmentsError}</div>
-                    ) : userDepartments.length === 0 ? (
+                    ) : departments.length === 0 ? (
                       <div className="p-2 text-sm text-gray-500">No departments available</div>
                     ) : (
-                      userDepartments.filter(ud => ud.department?.dept_id).map((ud) => (
-                        <SelectItem key={ud.department!.dept_id} value={ud.department!.dept_id.toString()}>
-                          {ud.department!.name}
+                      departments.map((dept) => (
+                        <SelectItem key={dept.dept_id} value={dept.dept_id.toString()}>
+                          {dept.name}
                         </SelectItem>
                       ))
                     )}

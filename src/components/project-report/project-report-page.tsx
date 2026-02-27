@@ -10,7 +10,7 @@ import { useBusinessPlanDetails } from '@/hooks/use-business-plan-details'
 import { useProjectTypes } from '@/hooks/use-project-types'
 import { useFundingSources } from '@/hooks/use-funding-sources'
 import { useSettings } from '@/hooks/use-settings'
-import { useUsersDepartments } from '@/hooks/use-users-departments'
+import { useDepartments } from '@/hooks/use-departments'
 import { useUserAccess } from '@/hooks/use-user-access'
 import { formatDate, CURRENCY_SYMBOL, getCurrentFinancialYearDates } from '@/lib/utils'
 import { BusinessPlan, BusinessPlanDetail } from '@/types'
@@ -950,15 +950,8 @@ export function ProjectReportPage() {
   // Get settings for financial year calculation
   const { settings } = useSettings()
   
-  // Get current user ID for fetching departments
-  const { access } = useUserAccess()
-  const currentUserId = access?.user?.id
-  
-  // Fetch user departments
-  const { userDepartments, loading: departmentsLoading } = useUsersDepartments({ 
-    user_id: currentUserId, 
-    all: true 
-  })
+  // Fetch all departments for filtering
+  const { departments, loading: departmentsLoading } = useDepartments({ all: true })
   
   // Calculate default dates from current financial year if not in URL
   const defaultFinancialYearDates = useMemo(() => {
@@ -1391,13 +1384,11 @@ export function ProjectReportPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Departments</SelectItem>
-                    {userDepartments
-                      .filter(ud => ud.department?.dept_id)
-                      .map((ud) => (
-                        <SelectItem key={ud.department!.dept_id} value={ud.department!.dept_id.toString()}>
-                          {ud.department!.name}
-                        </SelectItem>
-                      ))}
+                  {departments.map((dept) => (
+                    <SelectItem key={dept.dept_id} value={dept.dept_id.toString()}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -32,12 +32,10 @@ export function ItemsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<Item | null>(null)
   const [formData, setFormData] = useState({ 
-    item_code: '', 
     item_name: '', 
     item_category: '' 
   })
   const [errors, setErrors] = useState<{ 
-    item_code?: string; 
     item_name?: string; 
     item_category?: string;
     opening_stocks?: string;
@@ -95,7 +93,6 @@ export function ItemsPage() {
   const filteredItems = useMemo(() => {
     if (!searchTerm) return items
     return items.filter(item =>
-      item.item_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.item_category.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -105,7 +102,6 @@ export function ItemsPage() {
     if (item) {
       setEditingItem(item)
       setFormData({ 
-        item_code: item.item_code, 
         item_name: item.item_name, 
         item_category: item.item_category 
       })
@@ -120,7 +116,7 @@ export function ItemsPage() {
       }
     } else {
       setEditingItem(null)
-      setFormData({ item_code: '', item_name: '', item_category: '' })
+      setFormData({ item_name: '', item_category: '' })
       setOpeningStocks([])
     }
     setErrors({})
@@ -131,7 +127,7 @@ export function ItemsPage() {
   const handleCloseDialog = () => {
     setIsDialogOpen(false)
     setEditingItem(null)
-    setFormData({ item_code: '', item_name: '', item_category: '' })
+    setFormData({ item_name: '', item_category: '' })
     setOpeningStocks([])
     setErrors({})
     setActiveTab('details')
@@ -139,9 +135,6 @@ export function ItemsPage() {
 
   const validateForm = () => {
     const newErrors: typeof errors = {}
-    if (!formData.item_code.trim()) {
-      newErrors.item_code = 'Item code is required'
-    }
     if (!formData.item_name.trim()) {
       newErrors.item_name = 'Item name is required'
     }
@@ -377,18 +370,6 @@ export function ItemsPage() {
           {activeTab === 'details' && (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="item_code">Item Code</Label>
-                <Input
-                  id="item_code"
-                  value={formData.item_code}
-                  onChange={(e) => setFormData({ ...formData, item_code: e.target.value })}
-                  className={errors.item_code ? 'border-red-500' : ''}
-                />
-                {errors.item_code && (
-                  <p className="text-sm text-red-500 mt-1">{errors.item_code}</p>
-                )}
-              </div>
-              <div>
                 <Label htmlFor="item_name">Item Name</Label>
                 <Input
                   id="item_name"
@@ -566,8 +547,8 @@ export function ItemsPage() {
                       <TableBody>
                         {selectedItem.opening_stocks.map((stock) => (
                           <TableRow key={stock.id}>
-                            <TableCell className="font-medium">{stock.store_code || stock.store?.store_code || 'N/A'}</TableCell>
-                            <TableCell>{stock.store_name || stock.store?.store_name || 'N/A'}</TableCell>
+                            <TableCell className="font-medium">{stock.store?.store_code || 'N/A'}</TableCell>
+                            <TableCell>{stock.store?.store_name || 'N/A'}</TableCell>
                             <TableCell className="text-right">{stock.opening_qty}</TableCell>
                           </TableRow>
                         ))}
