@@ -1,0 +1,47 @@
+---
+description: PRD document
+alwaysApply: false
+---
+This is the Frontend for a Project Management Application. Only the client side
+The overall system has two components: Server, and Web Version (Frontend).
+The Server (backend) exists as separate project
+This project focuses only on the Frontend.
+The Web Admin Panel should include the following features:
+1. User Management:
+Roles:
+    Planning Cell/Project Directorate
+    Project Director (PD)
+    XEN / SDO (RRE)
+    SE / CE (RRE)
+    Admin / IT Cell
+Department:
+    Both
+    Construction / GSC
+    Field Divisions
+    HQ
+    Corporate
+Permissions:
+    Add Business Plan Projects
+    Approve Project Initiation
+    Update progress, enter actual cost, upload photos
+    Monitor progress, approve completions
+    Manage users, roles, templates
+
+User management will be a role based user management. With full control on viewing, inserting, editing, deleting in forms.
+The login will be with username and password. Keep it dynamic so it's scalable. 
+
+
+Profile:
+Region, Division and site. 
+These will be three profiles for area classifications. Region will be on top level. each region contain multiple divisions and each division contain multiple sites. so make sure to link them with foreign keys. 
+
+
+This project will be using Shadcn UI as design components library, tailwind if necessary. Next JS and Typescript. Use postgres for database.
+
+Keep fields in all tables minimalistic so we won't clutter things up
+
+Use a proper separation of concern architecture used with Next JS projects. But do not over complicate it. 
+
+Use API_DOCUMENTATION.md to see how to integrate api.
+
+See folders with "(Read Only)" in their names to check out the coding structure and standards. But see only the client part since this project only shows client part.

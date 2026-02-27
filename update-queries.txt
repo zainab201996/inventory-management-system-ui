@@ -1,0 +1,259 @@
+delete from role_details where page_id = (select page_id from pages where slug = 'materials-report');
+delete from pages where slug = 'materials-report';
+
+delete from role_details where page_id = (select page_id from pages where slug = 'materials-summary-report');
+delete from pages where slug = 'materials-summary-report';
+
+delete from role_details where page_id = (select page_id from pages where slug = 'bpd-material-allocate');
+delete from pages where slug = 'bpd-material-allocate';
+
+delete from role_details where page_id = (select page_id from pages where slug = 'materials');
+delete from pages where slug = 'materials';
+
+delete from role_details where page_id = (select page_id from pages where slug = 'project-issue-start');
+delete from pages where slug = 'project-issue-start';
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS department_id INTEGER REFERENCES departments(dept_id) ON DELETE RESTRICT;
+
+Update users set department_id = 1;
+
+ALTER TABLE users ALTER COLUMN department_id SET NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_users_department_id ON users(department_id);
+
+
+ALTER TABLE project_types ADD COLUMN IF NOT EXISTS department_id INTEGER;
+
+update project_types set department_id = 4;
+
+ALTER TABLE project_types ALTER COLUMN department_id SET NOT NULL;
+
+ALTER TABLE project_types ADD CONSTRAINT project_types_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(dept_id) ON DELETE RESTRICT;
+
+CREATE INDEX IF NOT EXISTS idx_project_types_department_id ON project_types(department_id);
+
+
+ALTER TABLE project_issues ADD COLUMN opened_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+UPDATE project_issues SET opened_at = created_at WHERE opened_at IS NULL;
+ALTER TABLE project_issues ADD COLUMN completed_at TIMESTAMP;
+UPDATE project_issues SET completed_at = updated_at WHERE status = 2 AND completed_at IS NULL AND updated_at IS NOT NULL;
+
+
+ALTER TABLE pages ADD COLUMN description TEXT;
+
+
+
+
+
+
+UPDATE pages SET description = 'To create and edit projects'
+WHERE page_id = 6;
+
+UPDATE pages SET description = 'To create and edit projects predefined workflow'
+WHERE page_id = 7;
+
+UPDATE pages SET description = 'To create and edit users'
+WHERE page_id = 8;
+
+UPDATE pages SET description = 'To create and edit roles'
+WHERE page_id = 9;
+
+UPDATE pages SET description = 'To create and edit circles'
+WHERE page_id = 11;
+
+UPDATE pages SET description = 'To create and edit divisions'
+WHERE page_id = 12;
+
+UPDATE pages SET description = 'To create and edit sub divisions'
+WHERE page_id = 13;
+
+UPDATE pages SET description = 'To create and edit sub department'
+WHERE page_id = 14;
+
+UPDATE pages SET description = 'To create and edit reusable delay reasons'
+WHERE page_id = 15;
+
+UPDATE pages SET description = 'To create and edit reusable steps that can be used in making project types'
+WHERE page_id = 16;
+
+UPDATE pages SET description = 'To view user actions audit log'
+WHERE page_id = 17;
+
+UPDATE pages SET description = 'To view detailed projects progress report'
+WHERE page_id = 19;
+
+UPDATE pages SET description = 'To create and edit reusable issues'
+WHERE page_id = 21;
+
+UPDATE pages SET description = 'To open a new issue for a project'
+WHERE page_id = 22;
+
+UPDATE pages SET description = 'Chart'
+WHERE page_id = 25;
+
+UPDATE pages SET description = 'Key performance indicators'
+WHERE page_id = 26;
+
+UPDATE pages SET description = 'To initialize a planned project'
+WHERE page_id = 27;
+
+UPDATE pages SET description = 'To start a step'
+WHERE page_id = 28;
+
+UPDATE pages SET description = 'To complete a step'
+WHERE page_id = 29;
+
+UPDATE pages SET description = 'To mark an issue as resolved'
+WHERE page_id = 31;
+
+UPDATE pages SET description = 'Projects wise progress summary'
+WHERE page_id = 32;
+
+UPDATE pages SET description = 'Chart'
+WHERE page_id = 33;
+
+UPDATE pages SET description = 'To create and edit reusable funding sources'
+WHERE page_id = 34;
+
+UPDATE pages SET description = 'To view current financial year'
+WHERE page_id = 35;
+
+UPDATE pages SET description = 'Chart'
+WHERE page_id = 36;
+
+UPDATE pages SET description = 'Chart'
+WHERE page_id = 39;
+
+UPDATE pages SET description = 'Chart'
+WHERE page_id = 42;
+
+UPDATE pages SET description = 'All project issues with their statuses and remarks'
+WHERE page_id = 43;
+
+UPDATE pages SET description = 'Chart'
+WHERE page_id = 24;
+
+UPDATE pages SET description = 'To view project wise issues'
+WHERE page_id = 23;
+
+UPDATE pages SET description = NULL
+WHERE page_id = 38;
+
+*******************
+
+update settings set year_start = '01-01', year_end = '12-31';
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS sap_code INTEGER;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS p_num VARCHAR(100);
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name VARCHAR(255);
+
+
+CREATE TABLE IF NOT EXISTS issues_c (
+    issue_c_id SERIAL PRIMARY KEY,
+    issue_c_name VARCHAR(200) NOT NULL UNIQUE,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+    updated_by INTEGER REFERENCES users(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_issues_c_updated_by ON issues_c(updated_by);
+
+CREATE INDEX IF NOT EXISTS idx_issues_c_issue_c_name ON issues_c(issue_c_name);
+
+ALTER TABLE issues 
+ADD COLUMN IF NOT EXISTS issue_category_id INTEGER;
+
+ALTER TABLE issues 
+ADD CONSTRAINT issues_issue_category_id_fkey 
+FOREIGN KEY (issue_category_id) REFERENCES issues_c(issue_c_id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_issues_issue_category_id ON issues(issue_category_id);
+
+alter table issues alter column issue_category_id set not null;
+
+insert into pages (page_id, slug, page_name, is_report, is_action) values (44, 'issues-categories', 'Issues Categories', false, false);
+
+insert into role_details (role_id, page_id, show, "create", "edit", "delete") values ((select role_id from roles where role_name = 'Admin / IT Cell'), 44, true, true, true, true);
+
+# update users to set place holder sap codes
+
+alter table users alter column sap_code set not null;
+
+ALTER TABLE users ADD CONSTRAINT users_sap_code_unique UNIQUE (sap_code);
+
+**************************
+
+ALTER TABLE issues ADD COLUMN IF NOT EXISTS department_id INTEGER;
+
+update issues set department_id = (select min(dept_id) from departments);
+
+ALTER TABLE issues ALTER COLUMN department_id SET NOT NULL;
+
+ALTER TABLE issues ADD CONSTRAINT issues_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(dept_id) ON DELETE RESTRICT;
+
+CREATE INDEX IF NOT EXISTS idx_issues_department_id ON issues(department_id);
+
+***************************
+
+alter table audit_trail drop constraint audit_trail_userid_fkey;
+
+***************************
+
+alter table steps add column if not exists department_id integer;
+
+# update them carefully
+update steps set department_id = 1;
+
+ALTER TABLE steps ALTER COLUMN department_id SET NOT NULL;
+
+ALTER TABLE steps ADD CONSTRAINT steps_department_id_fkey FOREIGN KEY (department_id) REFERENCES departments(dept_id) ON DELETE RESTRICT;
+
+CREATE INDEX IF NOT EXISTS idx_steps_department_id ON steps(department_id);
+
+***************************
+
+# Carefully migrate departments
+
+CREATE TABLE IF NOT EXISTS users_dep (
+    ud_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    dept_id INTEGER NOT NULL REFERENCES departments(dept_id) ON DELETE RESTRICT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, dept_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_dep_user_id ON users_dep(user_id);
+CREATE INDEX IF NOT EXISTS idx_users_dep_dept_id ON users_dep(dept_id);
+
+DROP INDEX IF EXISTS idx_users_department_id;
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_department_id_fkey;
+ALTER TABLE users DROP COLUMN IF EXISTS department_id;
+
+insert into pages (page_id, page_name, slug, is_report, is_action) values (46, 'Users Report', 'users-report', true, false);
+
+insert into pages (page_id, page_name, slug, is_report, is_action) values (47, 'Project Cancellation', 'business-plan-cancel', false, true);
+
+ALTER TABLE business_plans ADD COLUMN IF NOT EXISTS cancellation_date DATE;
+
+ALTER TABLE business_plans ADD COLUMN IF NOT EXISTS cancellation_reason TEXT;
+
+update pages set description = 'Track total users of each department' where page_id = 46;
+
+
+*************************
+(Carefully delete all project issues)
+
+ALTER TABLE project_issues ADD COLUMN IF NOT EXISTS s_id INTEGER;
+
+ALTER TABLE project_issues ALTER COLUMN s_id SET NOT NULL;
+
+ALTER TABLE project_issues ADD CONSTRAINT project_issues_s_id_fkey FOREIGN KEY (s_id) REFERENCES steps(s_id) ON DELETE RESTRICT;
+
+CREATE INDEX IF NOT EXISTS idx_project_issues_s_id ON project_issues(s_id);
+
+Update project_types_detail set weightage = 0, t_days = 0, est_cost = 0;
