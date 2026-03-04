@@ -25,10 +25,17 @@ export function StockTransferDetailReportPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), [])
+  const oneMonthAgo = useMemo(() => {
+    const d = new Date()
+    d.setMonth(d.getMonth() - 1)
+    return d.toISOString().slice(0, 10)
+  }, [])
+
   const [fromStoreId, setFromStoreId] = useState<string>('all')
   const [toStoreId, setToStoreId] = useState<string>('all')
-  const [fromDate, setFromDate] = useState<string>(new Date().toISOString().slice(0, 10))
-  const [toDate, setToDate] = useState<string>(new Date().toISOString().slice(0, 10))
+  const [fromDate, setFromDate] = useState<string>(oneMonthAgo)
+  const [toDate, setToDate] = useState<string>(today)
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
 
@@ -98,8 +105,8 @@ export function StockTransferDetailReportPage() {
   const handleClearFilters = () => {
     setFromStoreId('all')
     setToStoreId('all')
-    setFromDate('')
-    setToDate('')
+    setFromDate(oneMonthAgo)
+    setToDate(today)
     setSearchTerm('')
     setReport(null)
     setError(null)

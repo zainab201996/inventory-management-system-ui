@@ -401,9 +401,9 @@ export function ItemsPage() {
           </div>
 
           {activeTab === 'details' && (
-            <div className="space-y-4">
+            <div className="space-y-4 text-gray-900 dark:text-gray-100">
               <div>
-                <Label htmlFor="item_name">Item Name</Label>
+                <Label htmlFor="item_name" className="text-sm font-medium text-gray-700 dark:text-gray-300">Item Name</Label>
                 <Input
                   id="item_name"
                   value={formData.item_name}
@@ -415,7 +415,7 @@ export function ItemsPage() {
                 )}
               </div>
               <div>
-                <Label htmlFor="item_category">Item Category</Label>
+                <Label htmlFor="item_category" className="text-sm font-medium text-gray-700 dark:text-gray-300">Item Category</Label>
                 <Input
                   id="item_category"
                   value={formData.item_category}
@@ -430,9 +430,9 @@ export function ItemsPage() {
           )}
 
           {activeTab === 'openingStock' && (
-            <div className="space-y-4">
+            <div className="space-y-4 text-gray-900 dark:text-gray-100">
               <div className="flex justify-between items-center">
-                <Label>Opening Stock Information</Label>
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Opening Stock Information</Label>
                 <Button type="button" variant="outline" size="sm" onClick={handleAddOpeningStock}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Store Stock
@@ -440,15 +440,15 @@ export function ItemsPage() {
               </div>
               
               {openingStocks.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 border border-dashed rounded-md">
+                <div className="text-center py-8 text-sm text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-700 rounded-md">
                   No opening stock entries. Click "Add Store Stock" to add entries.
                 </div>
               ) : (
                 <div className="space-y-3">
                   {openingStocks.map((stock, index) => (
-                    <div key={index} className="flex gap-2 items-start p-3 border rounded-md">
+                    <div key={index} className="flex gap-2 items-start p-3 border border-gray-200 dark:border-gray-700 rounded-md">
                       <div className="flex-1">
-                        <Label className="text-xs text-gray-500">Store</Label>
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Store</Label>
                         <Select
                           value={stock.store_id.toString()}
                           onValueChange={(value) => handleOpeningStockChange(index, 'store_id', parseInt(value))}
@@ -466,7 +466,7 @@ export function ItemsPage() {
                         </Select>
                       </div>
                       <div className="flex-1">
-                        <Label className="text-xs text-gray-500">Opening Quantity</Label>
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Opening Quantity</Label>
                         <Input
                           type="number"
                           min="0"
@@ -540,49 +540,49 @@ export function ItemsPage() {
               </div>
 
               {activeTab === 'details' && (
-                <div className="space-y-4">
+                <div className="space-y-4 text-gray-900 dark:text-gray-100">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm text-gray-500">Item Code</Label>
-                      <p className="font-medium">{selectedItem.item_code}</p>
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Item Code</Label>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-0.5">{selectedItem.item_code}</p>
                     </div>
                     <div>
-                      <Label className="text-sm text-gray-500">Item Name</Label>
-                      <p className="font-medium">{selectedItem.item_name}</p>
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Item Name</Label>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-0.5">{selectedItem.item_name}</p>
                     </div>
                     <div>
-                      <Label className="text-sm text-gray-500">Category</Label>
-                      <p className="font-medium">{selectedItem.item_category}</p>
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Category</Label>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-0.5">{selectedItem.item_category}</p>
                     </div>
                     <div>
-                      <Label className="text-sm text-gray-500">Created At</Label>
-                      <p className="font-medium">{formatDate(selectedItem.created_at)}</p>
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Created At</Label>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-0.5">{formatDate(selectedItem.created_at)}</p>
                     </div>
                   </div>
                 </div>
               )}
 
               {activeTab === 'openingStock' && (
-                <div className="space-y-4">
+                <div className="space-y-4 text-gray-900 dark:text-gray-100">
                   {!selectedItem.opening_stocks || selectedItem.opening_stocks.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500 border border-dashed rounded-md">
+                    <div className="text-center py-8 text-sm text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-700 rounded-md">
                       No opening stock entries for this item.
                     </div>
                   ) : (
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Store Code</TableHead>
-                          <TableHead>Store Name</TableHead>
-                          <TableHead className="text-right">Opening Quantity</TableHead>
+                          <TableHead className="text-sm font-medium text-gray-700 dark:text-gray-300">Store Code</TableHead>
+                          <TableHead className="text-sm font-medium text-gray-700 dark:text-gray-300">Store Name</TableHead>
+                          <TableHead className="text-right text-sm font-medium text-gray-700 dark:text-gray-300">Opening Quantity</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {selectedItem.opening_stocks.map((stock) => (
                           <TableRow key={stock.id}>
-                            <TableCell className="font-medium">{stock.store?.store_code || 'N/A'}</TableCell>
-                            <TableCell>{stock.store?.store_name || 'N/A'}</TableCell>
-                            <TableCell className="text-right">{stock.opening_qty}</TableCell>
+                            <TableCell className="text-sm font-medium text-gray-900 dark:text-gray-100">{stock.store_code ?? stock.store?.store_code ?? 'N/A'}</TableCell>
+                            <TableCell className="text-sm text-gray-900 dark:text-gray-100">{stock.store_name ?? stock.store?.store_name ?? 'N/A'}</TableCell>
+                            <TableCell className="text-right text-sm text-gray-900 dark:text-gray-100">{stock.opening_qty}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>

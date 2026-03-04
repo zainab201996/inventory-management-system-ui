@@ -18,6 +18,7 @@ import {
   DollarSign,
   ArrowLeftRight,
   FileText,
+  Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUserAccess } from '@/hooks/use-user-access'

@@ -1012,6 +1012,9 @@ export interface OpeningStock {
   id: number;
   item_id: number;
   store_id: number;
+  /** Present when API expands store info on the opening stock */
+  store_code?: string;
+  store_name?: string;
   opening_qty: number;
   created_at: string;
   updated_at: string;
