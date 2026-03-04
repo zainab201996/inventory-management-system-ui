@@ -14,7 +14,8 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { apiClient } from '@/lib/api-client'
-import { CURRENCY_SYMBOL, formatDate } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
+import { useCurrency } from '@/hooks/use-currency'
 import { Item, Rate, StockReport, StockReportFilters, Store } from '@/types'
 import { Loader2, Search, X } from 'lucide-react'
 
@@ -30,6 +31,8 @@ export function StockReportPage() {
   const [fromDate, setFromDate] = useState<string>(new Date().toISOString().slice(0, 10))
   const [toDate, setToDate] = useState<string>(new Date().toISOString().slice(0, 10))
   const [productSearch, setProductSearch] = useState('')
+
+  const { currencySymbol } = useCurrency()
 
   useEffect(() => {
     const fetchLookups = async () => {
@@ -287,7 +290,7 @@ export function StockReportPage() {
                   Stock Value
                 </div>
                 <div className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
-                  {CURRENCY_SYMBOL} {summary.totalStockValue.toLocaleString()}
+                  {currencySymbol} {summary.totalStockValue.toLocaleString()}
                 </div>
               </div>
             </div>
@@ -372,11 +375,11 @@ export function StockReportPage() {
                         <TableCell className="text-right">
                           {rate > 0 && (
                             <span className="text-xs text-gray-500 dark:text-gray-400 mr-1">
-                              {CURRENCY_SYMBOL} {rate.toLocaleString()} / unit
+                              {currencySymbol} {rate.toLocaleString()} / unit
                             </span>
                           )}
                           <div className="font-medium text-gray-900 dark:text-white">
-                            {CURRENCY_SYMBOL} {stockValue.toLocaleString()}
+                            {currencySymbol} {stockValue.toLocaleString()}
                           </div>
                         </TableCell>
                       </TableRow>

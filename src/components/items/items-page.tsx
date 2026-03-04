@@ -98,30 +98,63 @@ export function ItemsPage() {
     )
   }, [items, searchTerm])
 
-  const handleOpenDialog = (item?: Item) => {
+  const handleOpenDialog = async (item?: Item) => {
+    setErrors({})
+    setActiveTab('details')
+
     if (item) {
+      // Start with the lightweight list item data so the dialog feels snappy
       setEditingItem(item)
-      setFormData({ 
-        item_name: item.item_name, 
-        item_category: item.item_category 
+      setFormData({
+        item_name: item.item_name,
+        item_category: item.item_category,
       })
-      // Load opening stocks for editing
+
+      // Fallback to any opening stocks already present on the list item
       if (item.opening_stocks && item.opening_stocks.length > 0) {
-        setOpeningStocks(item.opening_stocks.map(os => ({
-          store_id: os.store_id,
-          opening_qty: os.opening_qty
-        })))
+        setOpeningStocks(
+          item.opening_stocks.map((os) => ({
+            store_id: os.store_id,
+            opening_qty: os.opening_qty,
+          })),
+        )
       } else {
         setOpeningStocks([])
+      }
+
+      setIsDialogOpen(true)
+
+      // Then hydrate with the authoritative item record that always includes opening stocks
+      try {
+        const response = await apiClient.getItem(item.id, true)
+        if (response.success && response.data) {
+          const fullItem = response.data
+          setEditingItem(fullItem)
+          setFormData({
+            item_name: fullItem.item_name,
+            item_category: fullItem.item_category,
+          })
+
+          if (fullItem.opening_stocks && fullItem.opening_stocks.length > 0) {
+            setOpeningStocks(
+              fullItem.opening_stocks.map((os) => ({
+                store_id: os.store_id,
+                opening_qty: os.opening_qty,
+              })),
+            )
+          } else {
+            setOpeningStocks([])
+          }
+        }
+      } catch {
+        // If the detailed fetch fails, we keep whatever data we already showed
       }
     } else {
       setEditingItem(null)
       setFormData({ item_name: '', item_category: '' })
       setOpeningStocks([])
+      setIsDialogOpen(true)
     }
-    setErrors({})
-    setIsDialogOpen(true)
-    setActiveTab('details')
   }
 
   const handleCloseDialog = () => {

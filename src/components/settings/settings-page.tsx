@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,7 +22,7 @@ import { Loader2, Settings as SettingsIcon, Calendar, Lock, AlertTriangle } from
 
 export function SettingsPage() {
   const router = useRouter()
-  const { settings, loading, error } = useSettings()
+  const { settings, loading, error, refetch } = useSettings()
   const { toast } = useToast()
   
   // Password update form state
@@ -38,6 +38,17 @@ export function SettingsPage() {
   }>({})
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+
+  const [currencySymbol, setCurrencySymbol] = useState('')
+  const [currencyCode, setCurrencyCode] = useState('')
+  const [isSavingCurrency, setIsSavingCurrency] = useState(false)
+
+  useEffect(() => {
+    if (settings) {
+      setCurrencySymbol(settings.currency_symbol || '')
+      setCurrencyCode(settings.currency_code || '')
+    }
+  }, [settings])
 
   const formatFinancialYear = (yearStart: string, yearEnd: string) => {
     // yearStart and yearEnd are in MM-DD format
@@ -264,10 +275,92 @@ export function SettingsPage() {
                 </div> */}
               </div>
 
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <p className="text-sm text-blue-800 dark:text-blue-300">
-                  <strong>Note:</strong> Settings are managed automatically by the system. This view is read-only.
-                </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Currency Symbol
+                  </Label>
+                  <Input
+                    value={currencySymbol}
+                    onChange={(e) => setCurrencySymbol(e.target.value)}
+                    placeholder="e.g. Rs"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Short symbol shown before amounts (e.g. Rs, AED, $, €).
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Currency Code
+                  </Label>
+                  <Input
+                    value={currencyCode}
+                    onChange={(e) => setCurrencyCode(e.target.value.toUpperCase())}
+                    placeholder="e.g. PKR"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    ISO-like code for reports (e.g. PKR, AED, USD).
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    if (settings) {
+                      setCurrencySymbol(settings.currency_symbol || '')
+                      setCurrencyCode(settings.currency_code || '')
+                    }
+                  }}
+                  disabled={isSavingCurrency}
+                >
+                  Reset
+                </Button>
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    setIsSavingCurrency(true)
+                    try {
+                      const response = await apiClient.updateSettings({
+                        currency_symbol: currencySymbol || undefined,
+                        currency_code: currencyCode || undefined,
+                      })
+                      if (response.success) {
+                        toast({
+                          title: 'Currency Updated',
+                          description: 'Currency settings have been saved.',
+                        })
+                        await refetch()
+                      } else {
+                        toast({
+                          title: 'Failed to Update Currency',
+                          description: response.message || response.error || 'Please try again.',
+                          variant: 'destructive',
+                        })
+                      }
+                    } catch (err: any) {
+                      toast({
+                        title: 'Failed to Update Currency',
+                        description: err?.message || 'Please try again.',
+                        variant: 'destructive',
+                      })
+                    } finally {
+                      setIsSavingCurrency(false)
+                    }
+                  }}
+                  disabled={isSavingCurrency}
+                >
+                  {isSavingCurrency ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Currency'
+                  )}
+                </Button>
               </div>
             </div>
           ) : (

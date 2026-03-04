@@ -127,7 +127,13 @@ const inventoryReportsItems: NavItem[] = [
 ]
 
 // Main navigation items
-const mainNavItems: NavItem[] = []
+const mainNavItems: NavItem[] = [
+  {
+    icon: <Settings className="w-5 h-5" />,
+    name: 'Settings',
+    path: '/settings',
+  },
+]
 
 interface SidebarProps {
   isCollapsed: boolean

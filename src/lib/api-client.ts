@@ -1438,6 +1438,13 @@ class ApiClient {
     return this.request<Settings>('/api/settings');
   }
 
+  async updateSettings(payload: Partial<Pick<Settings, 'currency_symbol' | 'currency_code'>>): Promise<ApiResponse<Settings>> {
+    return this.request<Settings>('/api/settings', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
   // ==================== INVENTORY SYSTEM API METHODS ====================
 
   // Stores
@@ -1563,6 +1570,18 @@ class ApiClient {
     return this.request<null>(`/api/store-transfer-notes/${id}`, {
       method: 'DELETE',
     });
+  }
+
+  async getSourceStoresWithStock(
+    itemId: number,
+    minQty: number = 0,
+  ): Promise<ApiResponse<StoreSourceWithStock[]>> {
+    const params: Record<string, any> = { item_id: itemId }
+    if (minQty !== 0) {
+      params.min_qty = minQty
+    }
+    const queryString = this.buildQueryString(params)
+    return this.request<StoreSourceWithStock[]>(`/api/store-transfer-notes/source-stores${queryString}`)
   }
 
   // Reports - Inventory

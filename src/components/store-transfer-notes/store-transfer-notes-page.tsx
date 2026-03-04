@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { apiClient } from '@/lib/api-client'
 import { formatDate, formatDateForInput } from '@/lib/utils'
-import { StoreTransferNote, Store, Item, CreateStoreTransferNoteDetailData, StockReport } from '@/types'
+import { StoreTransferNote, Store, Item, CreateStoreTransferNoteDetailData, StockReport, StoreSourceWithStock } from '@/types'
 import { Search, Plus, Edit, Trash2, Loader2, X, Eye } from 'lucide-react'
 import {
   Dialog,
@@ -57,6 +57,8 @@ export function StoreTransferNotesPage() {
   const [transferNoteToDelete, setTransferNoteToDelete] = useState<StoreTransferNote | null>(null)
   const { toast } = useToast()
   const [availableStockByItem, setAvailableStockByItem] = useState<Record<number, number>>({})
+  const [sourceStores, setSourceStores] = useState<StoreSourceWithStock[]>([])
+  const [sourceStoresLoading, setSourceStoresLoading] = useState(false)
 
   const fetchTransferNotes = useCallback(async () => {
     setIsLoading(true)
@@ -107,6 +109,12 @@ export function StoreTransferNotesPage() {
     fetchItems()
   }, [fetchTransferNotes, fetchStores, fetchItems])
 
+  const generateVoucherNumber = () => {
+    // Generate a unique numeric voucher number client-side.
+    // Backend still enforces numeric format and uniqueness at the database level.
+    return Date.now().toString()
+  }
+
   useEffect(() => {
     const fetchAvailableStock = async () => {
       if (!formData.from_store_id || !formData.date) {
@@ -138,6 +146,59 @@ export function StoreTransferNotesPage() {
 
     fetchAvailableStock()
   }, [formData.from_store_id, formData.date])
+
+  // Refresh the list of candidate "From Stores" whenever the detail items change.
+  useEffect(() => {
+    const loadSourceStores = async () => {
+      const distinctItemIds = Array.from(
+        new Set(details.map((d) => d.item_id).filter((id) => !!id)),
+      )
+
+      if (!distinctItemIds.length) {
+        setSourceStores([])
+        return
+      }
+
+      setSourceStoresLoading(true)
+      try {
+        // For multiple items, we take the intersection of stores that have stock for every item
+        const responses = await Promise.all(
+          distinctItemIds.map((itemId) => apiClient.getSourceStoresWithStock(itemId)),
+        )
+
+        const storeLists = responses
+          .filter((res) => res.success && Array.isArray(res.data))
+          .map((res) => res.data as StoreSourceWithStock[])
+
+        if (!storeLists.length) {
+          setSourceStores([])
+          return
+        }
+
+        const storeMap = new Map<number, StoreSourceWithStock>()
+        storeLists[0].forEach((s) => {
+          storeMap.set(s.store_id, s)
+        })
+
+        for (let i = 1; i < storeLists.length; i++) {
+          const currentIds = new Set(storeLists[i].map((s) => s.store_id))
+          for (const id of Array.from(storeMap.keys())) {
+            if (!currentIds.has(id)) {
+              storeMap.delete(id)
+            }
+          }
+        }
+
+        setSourceStores(Array.from(storeMap.values()))
+      } catch {
+        setSourceStores([])
+      } finally {
+        setSourceStoresLoading(false)
+      }
+    }
+
+    loadSourceStores()
+  }, [details])
 
   const filteredTransferNotes = useMemo(() => {
     if (!searchTerm) return transferNotes
@@ -173,7 +234,7 @@ export function StoreTransferNotesPage() {
     } else {
       setEditingTransferNote(null)
       setFormData({
-        v_no: '',
+        v_no: generateVoucherNumber(),
         date: formatDateForInput(new Date().toISOString()),
         ref_no: '',
         from_store_id: 0,
@@ -338,15 +399,33 @@ export function StoreTransferNotesPage() {
     setDetails(updated)
   }
 
+  const handleVoucherNumberChange = (value: string) => {
+    // Enforce numeric-only voucher numbers on the client to match backend validation
+    const numeric = value.replace(/\D/g, '')
+    setFormData((prev) => ({
+      ...prev,
+      v_no: numeric,
+    }))
+  }
+
   const getStoreName = (storeId: number) => {
     const store = stores.find(s => s.id === storeId)
     return store ? `${store.store_code} - ${store.store_name}` : 'N/A'
   }
 
-  const availableFromStores = useMemo(
-    () => stores.filter((store) => store.id !== formData.to_store_id),
-    [stores, formData.to_store_id]
-  )
+  const availableFromStores = useMemo(() => {
+    const baseStores =
+      sourceStores.length > 0
+        ? sourceStores
+        : stores.map((s) => ({
+            store_id: s.id,
+            store_code: s.store_code,
+            store_name: s.store_name,
+            current_stock: 0,
+          }))
+
+    return baseStores.filter((store) => store.store_id !== formData.to_store_id)
+  }, [stores, sourceStores, formData.to_store_id])
 
   const availableToStores = useMemo(
     () => stores.filter((store) => store.id !== formData.from_store_id),
@@ -463,8 +542,11 @@ export function StoreTransferNotesPage() {
                 <Input
                   id="v_no"
                   value={formData.v_no}
-                  onChange={(e) => setFormData({ ...formData, v_no: e.target.value })}
+                  onChange={(e) => handleVoucherNumberChange(e.target.value)}
                   className={errors.v_no ? 'border-red-500' : ''}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  readOnly
                 />
                 {errors.v_no && (
                   <p className="text-sm text-red-500 mt-1">{errors.v_no}</p>
@@ -502,7 +584,7 @@ export function StoreTransferNotesPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {availableFromStores.map((store) => (
-                      <SelectItem key={store.id} value={store.id.toString()}>
+                      <SelectItem key={store.store_id} value={store.store_id.toString()}>
                         {store.store_code} - {store.store_name}
                       </SelectItem>
                     ))}

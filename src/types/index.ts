@@ -927,6 +927,8 @@ export interface Settings {
   year_end: string; // MM-DD format (e.g., "06-30")
   created_at: string;
   updated_at: string;
+  currency_symbol?: string;
+  currency_code?: string;
 }
 
 // Financial Year Types
@@ -1126,6 +1128,13 @@ export interface UpdateStoreTransferNoteData {
   to_store_id?: number;
   order_no?: string | null;
   details?: CreateStoreTransferNoteDetailData[];
+}
+
+export interface StoreSourceWithStock {
+  store_id: number;
+  store_code: string;
+  store_name: string;
+  current_stock: number;
 }
 
 // Store Wise Stock Report Types (Store Wise Stock Report API)
