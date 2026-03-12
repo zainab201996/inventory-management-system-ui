@@ -26,7 +26,6 @@ export function ItemsPage() {
   const [selectedItem, setSelectedItem] = useState<Item | null>(null)
   const [isAddingNew, setIsAddingNew] = useState(false)
   const [isEditingInPanel, setIsEditingInPanel] = useState(false)
-  const [activeTab, setActiveTab] = useState<'details' | 'openingStock'>('details')
   const [openingStocks, setOpeningStocks] = useState<CreateOpeningStockData[]>([])
 
   const { toast } = useToast()
@@ -79,7 +78,6 @@ export function ItemsPage() {
     setSelectedItem(item)
     setIsAddingNew(false)
     setIsEditingInPanel(false)
-    setActiveTab('details')
     try {
       const response = await apiClient.getItem(item.id, true)
       if (response.success && response.data) setSelectedItem(response.data)
@@ -95,7 +93,6 @@ export function ItemsPage() {
     setFormData({ item_name: '', item_category: '' })
     setOpeningStocks([])
     setErrors({})
-    setActiveTab('details')
   }
 
   const handleCancelAddOrEdit = () => {
@@ -356,33 +353,11 @@ export function ItemsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900 mb-6">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('details')}
-                    className={`px-4 py-2 font-medium w-full rounded-md text-sm transition-colors ${
-                      activeTab === 'details'
-                        ? 'shadow-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800'
-                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                    }`}
-                  >
-                    Item Details
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('openingStock')}
-                    className={`px-4 py-2 font-medium w-full rounded-md text-sm transition-colors ${
-                      activeTab === 'openingStock'
-                        ? 'shadow-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800'
-                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                    }`}
-                  >
-                    Opening Stock ({showFormInPanel ? openingStocks.length : selectedItem?.opening_stocks?.length || 0})
-                  </button>
-                </div>
-
-                {activeTab === 'details' && (
-                  <div className="space-y-4 text-gray-900 dark:text-gray-100">
+                <div className="space-y-8 text-gray-900 dark:text-gray-100">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
+                      Item Details
+                    </p>
                     {showFormInPanel ? (
                       <>
                         <div>
@@ -441,21 +416,25 @@ export function ItemsPage() {
                       </div>
                     ) : null}
                   </div>
-                )}
 
-                {activeTab === 'openingStock' && (
-                  <div className="space-y-4 text-gray-900 dark:text-gray-100">
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        Opening Stock
+                        {selectedItem || openingStocks.length
+                          ? ` (${showFormInPanel ? openingStocks.length : selectedItem?.opening_stocks?.length || 0})`
+                          : ''}
+                      </p>
+                      {showFormInPanel && (
+                        <Button type="button" variant="outline" size="sm" onClick={handleAddOpeningStock}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Store Stock
+                        </Button>
+                      )}
+                    </div>
+
                     {showFormInPanel ? (
                       <>
-                        <div className="flex justify-between items-center">
-                          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Opening Stock Information
-                          </Label>
-                          <Button type="button" variant="outline" size="sm" onClick={handleAddOpeningStock}>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Store Stock
-                          </Button>
-                        </div>
                         {openingStocks.length === 0 ? (
                           <div className="text-center py-8 text-sm text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-700 rounded-md">
                             No opening stock entries. Click &quot;Add Store Stock&quot; to add entries.
@@ -553,7 +532,7 @@ export function ItemsPage() {
                       )
                     ) : null}
                   </div>
-                )}
+                </div>
               </div>
             </div>
           )}

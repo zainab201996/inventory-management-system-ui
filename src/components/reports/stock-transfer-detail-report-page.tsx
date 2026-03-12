@@ -285,24 +285,14 @@ export function StockTransferDetailReportPage() {
                       </TableCell>
                       <TableCell>{formatDate(t.date)}</TableCell>
                       <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-medium text-gray-900 dark:text-white">
-                            {t.from_store_code}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {t.from_store_name}
-                          </span>
-                        </div>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {t.from_store_name}
+                        </span>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-medium text-gray-900 dark:text-white">
-                            {t.to_store_code}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {t.to_store_name}
-                          </span>
-                        </div>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {t.to_store_name}
+                        </span>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">

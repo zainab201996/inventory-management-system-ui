@@ -348,14 +348,9 @@ export function StockReportPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex flex-col">
-                            <span className="font-medium text-gray-900 dark:text-white">
-                              {row.store_code}
-                            </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {row.store_name}
-                            </span>
-                          </div>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {row.store_name}
+                          </span>
                         </TableCell>
                         <TableCell className="text-right">
                           {row.opening_qty.toLocaleString()}

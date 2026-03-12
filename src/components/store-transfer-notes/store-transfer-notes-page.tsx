@@ -33,21 +33,19 @@ export function StoreTransferNotesPage() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [editingTransferNote, setEditingTransferNote] = useState<StoreTransferNote | null>(null)
   const [viewingTransferNote, setViewingTransferNote] = useState<StoreTransferNote | null>(null)
-  const [formData, setFormData] = useState({ 
-    v_no: '',
+  const [formData, setFormData] = useState({
     date: formatDateForInput(new Date().toISOString()),
     ref_no: '',
     from_store_id: 0,
     to_store_id: 0,
-    order_no: ''
+    order_no: '',
   })
   const [details, setDetails] = useState<CreateStoreTransferNoteDetailData[]>([])
-  const [errors, setErrors] = useState<{ 
-    v_no?: string;
-    date?: string;
-    from_store_id?: string;
-    to_store_id?: string;
-    details?: string;
+  const [errors, setErrors] = useState<{
+    date?: string
+    from_store_id?: string
+    to_store_id?: string
+    details?: string
   }>({})
   const [isLoading, setIsLoading] = useState(false)
   const [transferNotes, setTransferNotes] = useState<StoreTransferNote[]>([])
@@ -108,12 +106,6 @@ export function StoreTransferNotesPage() {
     fetchStores()
     fetchItems()
   }, [fetchTransferNotes, fetchStores, fetchItems])
-
-  const generateVoucherNumber = () => {
-    // Generate a unique numeric voucher number client-side.
-    // Backend still enforces numeric format and uniqueness at the database level.
-    return Date.now().toString()
-  }
 
   useEffect(() => {
     const fetchAvailableStock = async () => {
@@ -213,12 +205,11 @@ export function StoreTransferNotesPage() {
     if (transferNote) {
       setEditingTransferNote(transferNote)
       setFormData({
-        v_no: transferNote.v_no,
         date: formatDateForInput(transferNote.date),
         ref_no: transferNote.ref_no || '',
         from_store_id: transferNote.from_store_id,
         to_store_id: transferNote.to_store_id,
-        order_no: transferNote.order_no || ''
+        order_no: transferNote.order_no || '',
       })
       if (transferNote.details && transferNote.details.length > 0) {
         setDetails(transferNote.details.map(d => ({
@@ -234,12 +225,11 @@ export function StoreTransferNotesPage() {
     } else {
       setEditingTransferNote(null)
       setFormData({
-        v_no: generateVoucherNumber(),
         date: formatDateForInput(new Date().toISOString()),
         ref_no: '',
         from_store_id: 0,
         to_store_id: 0,
-        order_no: ''
+        order_no: '',
       })
       setDetails([])
     }
@@ -251,12 +241,11 @@ export function StoreTransferNotesPage() {
     setIsDialogOpen(false)
     setEditingTransferNote(null)
     setFormData({
-      v_no: '',
       date: formatDateForInput(new Date().toISOString()),
       ref_no: '',
       from_store_id: 0,
       to_store_id: 0,
-      order_no: ''
+      order_no: '',
     })
     setDetails([])
     setErrors({})
@@ -281,9 +270,6 @@ export function StoreTransferNotesPage() {
 
   const validateForm = () => {
     const newErrors: typeof errors = {}
-    if (!formData.v_no.trim()) {
-      newErrors.v_no = 'Voucher number is required'
-    }
     if (!formData.date) {
       newErrors.date = 'Date is required'
     }
@@ -326,10 +312,12 @@ export function StoreTransferNotesPage() {
 
     try {
       const transferNoteData = {
-        ...formData,
+        date: formData.date,
         ref_no: formData.ref_no || null,
+        from_store_id: formData.from_store_id,
+        to_store_id: formData.to_store_id,
         order_no: formData.order_no || null,
-        details: details
+        details,
       }
 
       if (editingTransferNote) {
@@ -397,15 +385,6 @@ export function StoreTransferNotesPage() {
       updated[index] = { ...updated[index], [field]: value }
     }
     setDetails(updated)
-  }
-
-  const handleVoucherNumberChange = (value: string) => {
-    // Enforce numeric-only voucher numbers on the client to match backend validation
-    const numeric = value.replace(/\D/g, '')
-    setFormData((prev) => ({
-      ...prev,
-      v_no: numeric,
-    }))
   }
 
   const getStoreName = (storeId: number) => {
@@ -528,7 +507,11 @@ export function StoreTransferNotesPage() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingTransferNote ? 'Edit Transfer Note' : 'Create Transfer Note'}</DialogTitle>
+            <DialogTitle>
+              {editingTransferNote
+                ? `Edit Transfer Note - ${editingTransferNote.v_no}`
+                : 'Create Transfer Note'}
+            </DialogTitle>
             <DialogDescription>
               {editingTransferNote ? 'Update transfer note information' : 'Create a new store-to-store transfer'}
             </DialogDescription>
@@ -537,21 +520,6 @@ export function StoreTransferNotesPage() {
           <div className="space-y-6">
             {/* Master Fields */}
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="v_no">Voucher Number</Label>
-                <Input
-                  id="v_no"
-                  value={formData.v_no}
-                  onChange={(e) => handleVoucherNumberChange(e.target.value)}
-                  className={errors.v_no ? 'border-red-500' : ''}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  readOnly
-                />
-                {errors.v_no && (
-                  <p className="text-sm text-red-500 mt-1">{errors.v_no}</p>
-                )}
-              </div>
               <div>
                 <Label htmlFor="date">Date</Label>
                 <Input
@@ -758,38 +726,56 @@ export function StoreTransferNotesPage() {
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm text-gray-500">Voucher Number</Label>
-                  <p className="font-medium">{viewingTransferNote.v_no}</p>
+                  <Label className="text-sm text-gray-600 dark:text-gray-400">Voucher Number</Label>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">
+                    {viewingTransferNote.v_no}
+                  </p>
                 </div>
                 <div>
-                  <Label className="text-sm text-gray-500">Date</Label>
-                  <p className="font-medium">{formatDate(viewingTransferNote.date)}</p>
+                  <Label className="text-sm text-gray-600 dark:text-gray-400">Date</Label>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">
+                    {formatDate(viewingTransferNote.date)}
+                  </p>
                 </div>
                 <div>
-                  <Label className="text-sm text-gray-500">From Store</Label>
-                  <p className="font-medium">{getStoreName(viewingTransferNote.from_store_id)}</p>
+                  <Label className="text-sm text-gray-600 dark:text-gray-400">From Store</Label>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">
+                    {getStoreName(viewingTransferNote.from_store_id)}
+                  </p>
                 </div>
                 <div>
-                  <Label className="text-sm text-gray-500">To Store</Label>
-                  <p className="font-medium">{getStoreName(viewingTransferNote.to_store_id)}</p>
+                  <Label className="text-sm text-gray-600 dark:text-gray-400">To Store</Label>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">
+                    {getStoreName(viewingTransferNote.to_store_id)}
+                  </p>
                 </div>
                 {viewingTransferNote.ref_no && (
                   <div>
-                    <Label className="text-sm text-gray-500">Reference Number</Label>
-                    <p className="font-medium">{viewingTransferNote.ref_no}</p>
+                    <Label className="text-sm text-gray-600 dark:text-gray-400">
+                      Reference Number
+                    </Label>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                      {viewingTransferNote.ref_no}
+                    </p>
                   </div>
                 )}
                 {viewingTransferNote.order_no && (
                   <div>
-                    <Label className="text-sm text-gray-500">Order Number</Label>
-                    <p className="font-medium">{viewingTransferNote.order_no}</p>
+                    <Label className="text-sm text-gray-600 dark:text-gray-400">
+                      Order Number
+                    </Label>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">
+                      {viewingTransferNote.order_no}
+                    </p>
                   </div>
                 )}
               </div>
 
               {viewingTransferNote.details && viewingTransferNote.details.length > 0 && (
                 <div>
-                  <Label className="text-sm font-medium mb-2 block">Transfer Details</Label>
+                  <Label className="text-sm font-medium mb-2 block text-gray-700 dark:text-gray-300">
+                    Transfer Details
+                  </Label>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -802,10 +788,18 @@ export function StoreTransferNotesPage() {
                     <TableBody>
                       {viewingTransferNote.details.map((detail) => (
                         <TableRow key={detail.id}>
-                          <TableCell className="font-medium">{detail.item_code}</TableCell>
-                          <TableCell>{detail.item_name}</TableCell>
-                          <TableCell className="text-right">{detail.qty}</TableCell>
-                          <TableCell>{detail.ref || '-'}</TableCell>
+                          <TableCell className="font-medium text-gray-900 dark:text-gray-100">
+                            {detail.item_code}
+                          </TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-100">
+                            {detail.item_name}
+                          </TableCell>
+                          <TableCell className="text-right text-gray-900 dark:text-gray-100">
+                            {detail.qty}
+                          </TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-100">
+                            {detail.ref || '-'}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

@@ -100,11 +100,11 @@ export function Header({ isSidebarCollapsed, onToggleSidebar }: HeaderProps) {
               variant="ghost"
               className="flex items-center space-x-2 rounded-full px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100">
-                <User className="h-4 w-4 text-orange-500" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-500/10">
+                <User className="h-4 w-4 text-orange-500 dark:text-orange-400" />
               </div>
               <div className="flex flex-col items-start">
-                <p className="text-sm font-medium leading-none text-gray-900 dark:text-white">
+                <p className="text-sm font-medium leading-none !text-gray-900 dark:!text-white">
                   {username}
                 </p>
                 <div className="flex flex-wrap gap-1 mt-0.5">

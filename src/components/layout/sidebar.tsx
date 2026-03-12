@@ -618,7 +618,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             <div>
               <h2
                 className={cn(
-                  'mb-4 flex text-xs uppercase leading-[20px] text-gray-400',
+                  'mb-4 flex text-xs uppercase leading-[20px] text-gray-500 dark:text-gray-400',
                   !isExpanded && !isHovered
                     ? 'lg:justify-center'
                     : 'justify-start'
@@ -660,7 +660,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               <div>
                 <h2
                   className={cn(
-                    'mb-4 flex text-xs uppercase leading-[20px] text-gray-400',
+                    'mb-4 flex text-xs uppercase leading-[20px] text-gray-500 dark:text-gray-400',
                     !isExpanded && !isHovered
                       ? 'lg:justify-center'
                       : 'justify-start'
@@ -681,7 +681,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               <div>
                 <h2
                   className={cn(
-                    'mb-4 flex text-xs uppercase leading-[20px] text-gray-400',
+                    'mb-4 flex text-xs uppercase leading-[20px] text-gray-500 dark:text-gray-400',
                     !isExpanded && !isHovered
                       ? 'lg:justify-center'
                       : 'justify-start'
@@ -702,7 +702,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               <div>
                 <h2
                   className={cn(
-                    'mb-4 flex text-xs uppercase leading-[20px] text-gray-400',
+                    'mb-4 flex text-xs uppercase leading-[20px] text-gray-500 dark:text-gray-400',
                     !isExpanded && !isHovered
                       ? 'lg:justify-center'
                       : 'justify-start'
@@ -722,7 +722,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             <div>
               <h2
                 className={cn(
-                  'mb-4 flex text-xs uppercase leading-[20px] text-gray-400',
+                  'mb-4 flex text-xs uppercase leading-[20px] text-gray-500 dark:text-gray-400',
                   !isExpanded && !isHovered
                     ? 'lg:justify-center'
                     : 'justify-start'
@@ -741,7 +741,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             <div>
               <h2
                 className={cn(
-                  'mb-4 flex text-xs uppercase leading-[20px] text-gray-400',
+                  'mb-4 flex text-xs uppercase leading-[20px] text-gray-500 dark:text-gray-400',
                   !isExpanded && !isHovered
                     ? 'lg:justify-center'
                     : 'justify-start'
@@ -760,7 +760,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             <div>
               <h2
                 className={cn(
-                  'mb-4 flex text-xs uppercase leading-[20px] text-gray-400',
+                  'mb-4 flex text-xs uppercase leading-[20px] text-gray-500 dark:text-gray-400',
                   !isExpanded && !isHovered
                     ? 'lg:justify-center'
                     : 'justify-start'
@@ -780,7 +780,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               <div>
                 <h2
                   className={cn(
-                    'mb-4 flex text-xs uppercase leading-[20px] text-gray-400',
+                    'mb-4 flex text-xs uppercase leading-[20px] text-gray-500 dark:text-gray-400',
                     !isExpanded && !isHovered
                       ? 'lg:justify-center'
                       : 'justify-start'
@@ -801,7 +801,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               <div>
                 <h2
                   className={cn(
-                    'mb-4 flex text-xs uppercase leading-[20px] text-gray-400',
+                    'mb-4 flex text-xs uppercase leading-[20px] text-gray-500 dark:text-gray-400',
                     !isExpanded && !isHovered
                       ? 'lg:justify-center'
                       : 'justify-start'

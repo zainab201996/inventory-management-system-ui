@@ -16,13 +16,14 @@ export function StoresPage() {
   const [formData, setFormData] = useState({ store_name: '' })
   const [errors, setErrors] = useState<{ store_name?: string }>({})
   const [isLoading, setIsLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [stores, setStores] = useState<Store[]>([])
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
   const [storeToDelete, setStoreToDelete] = useState<Store | null>(null)
 
   const [selectedStore, setSelectedStore] = useState<Store | null>(null)
   const [isAddingNew, setIsAddingNew] = useState(false)
-  const [isEditingInPanel, setIsEditingInPanel] = useState(false)
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false)
 
   const { toast } = useToast()
 
@@ -58,45 +59,20 @@ export function StoresPage() {
     )
   }, [stores, searchTerm])
 
-  const handleSelectStore = useCallback((store: Store) => {
-    setSelectedStore(store)
-    setIsAddingNew(false)
-    setIsEditingInPanel(false)
-    setFormData({ store_name: store.store_name })
-  }, [])
-
   const handleAddNew = () => {
     setSelectedStore(null)
     setIsAddingNew(true)
-    setIsEditingInPanel(false)
     setFormData({ store_name: '' })
     setErrors({})
-  }
-
-  const handleCancelAddOrEdit = () => {
-    setIsAddingNew(false)
-    if (selectedStore) {
-      setIsEditingInPanel(false)
-      setFormData({ store_name: selectedStore.store_name })
-    } else {
-      setFormData({ store_name: '' })
-    }
-    setErrors({})
-  }
-
-  const handleStartEdit = () => {
-    if (!selectedStore) return
-    setIsEditingInPanel(true)
-    setFormData({ store_name: selectedStore.store_name })
-    setErrors({})
+    setIsFormDialogOpen(true)
   }
 
   const handleEditStore = (store: Store) => {
     setSelectedStore(store)
     setIsAddingNew(false)
-    setIsEditingInPanel(true)
     setFormData({ store_name: store.store_name })
     setErrors({})
+    setIsFormDialogOpen(true)
   }
 
   const validateForm = () => {
@@ -112,6 +88,7 @@ export function StoresPage() {
     if (!validateForm()) return
 
     try {
+      setIsSaving(true)
       if (isAddingNew) {
         const response = await apiClient.createStore(formData)
         if (response.success) {
@@ -119,6 +96,7 @@ export function StoresPage() {
           fetchStores()
           setIsAddingNew(false)
           setFormData({ store_name: '' })
+          setIsFormDialogOpen(false)
         }
       } else if (selectedStore) {
         const response = await apiClient.updateStore(selectedStore.id, formData)
@@ -126,7 +104,7 @@ export function StoresPage() {
           toast({ title: 'Success', description: 'Store updated successfully' })
           fetchStores()
           setSelectedStore({ ...selectedStore, store_name: formData.store_name })
-          setIsEditingInPanel(false)
+          setIsFormDialogOpen(false)
         }
       }
     } catch (error: any) {
@@ -135,6 +113,8 @@ export function StoresPage() {
         description: error.message || 'Failed to save store',
         variant: 'destructive',
       })
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -161,9 +141,6 @@ export function StoresPage() {
     }
   }
 
-  const showDetailPanel = selectedStore || isAddingNew
-  const showFormInPanel = isAddingNew || isEditingInPanel
-
   if (isLoading && filteredStores.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -177,9 +154,9 @@ export function StoresPage() {
 
   return (
     <div className="relative -mx-6 px-6" style={{ height: 'calc(100vh - 7rem)' }}>
-      <div className="flex h-full gap-6 w-full min-w-[1000px]">
-        {/* Left: Stores list */}
-        <div className="w-70 flex-shrink-0 flex flex-col border-r border-gray-200 dark:border-gray-800 h-full">
+      <div className="flex h-full w-full min-w-[600px]">
+        {/* Stores list */}
+        <div className="flex-1 flex flex-col border-r border-gray-200 dark:border-gray-800 h-full">
           <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -217,9 +194,8 @@ export function StoresPage() {
                 {filteredStores.map((store) => (
                   <div
                     key={store.id}
-                    onClick={() => handleSelectStore(store)}
                     className={cn(
-                      'p-3 rounded-lg cursor-pointer transition-all mb-2 border',
+                      'p-3 rounded-lg transition-all mb-2 border',
                       selectedStore?.id === store.id
                         ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 shadow-sm'
                         : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
@@ -230,14 +206,11 @@ export function StoresPage() {
                         <div className="font-medium text-gray-900 dark:text-white truncate">{store.store_name}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{store.store_code}</div>
                       </div>
-                      <div className="flex items-center gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-1 ml-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            if (selectedStore?.id === store.id) handleStartEdit()
-                            else handleEditStore(store)
-                          }}
+                          onClick={() => handleEditStore(store)}
                           className="h-6 w-6 p-0"
                           title="Edit"
                         >
@@ -263,105 +236,75 @@ export function StoresPage() {
             )}
           </div>
         </div>
-
-        {/* Right: Detail / Form */}
-        <div className="flex-1 min-w-0 overflow-y-auto w-full custom-scrollbar">
-          {!showDetailPanel ? (
-            <div className="flex flex-col items-center justify-center h-full text-center p-8">
-              <p className="text-gray-500 dark:text-gray-400">Select a store or add a new one</p>
-              <Button onClick={handleAddNew} variant="outline" className="mt-4">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Store
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-6 w-full p-6">
-              <div className="rounded-md border border-gray-200 dark:border-gray-800 bg-transparent shadow-none p-4 w-full">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Store</p>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {isAddingNew ? 'New Store' : selectedStore?.store_name}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    {showFormInPanel ? (
-                      <>
-                        <Button variant="outline" size="sm" onClick={handleCancelAddOrEdit}>
-                          Cancel
-                        </Button>
-                        <Button size="sm" onClick={handleSubmit}>
-                          {isAddingNew ? 'Create' : 'Save'}
-                        </Button>
-                      </>
-                    ) : selectedStore ? (
-                      <>
-                        <Button size="sm" variant="outline" onClick={handleStartEdit}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setStoreToDelete(selectedStore)
-                            setIsDeleteConfirmOpen(true)
-                          }}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </Button>
-                      </>
-                    ) : null}
-                  </div>
-                </div>
-
-                <div className="space-y-4 text-gray-900 dark:text-gray-100">
-                  {showFormInPanel ? (
-                    <div>
-                      <Label htmlFor="store_name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Store Name
-                      </Label>
-                      <Input
-                        id="store_name"
-                        value={formData.store_name}
-                        onChange={(e) => setFormData({ ...formData, store_name: e.target.value })}
-                        className={errors.store_name ? 'border-red-500' : ''}
-                      />
-                      {errors.store_name && (
-                        <p className="text-sm text-red-500 mt-1">{errors.store_name}</p>
-                      )}
-                    </div>
-                  ) : selectedStore ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Store Code</Label>
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-0.5">
-                          {selectedStore.store_code}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Store Name</Label>
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-0.5">
-                          {selectedStore.store_name}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Created At</Label>
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mt-0.5">
-                          {formatDate(selectedStore.created_at)}
-                        </p>
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
+      <Dialog
+        open={isFormDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && isSaving) return
+          setIsFormDialogOpen(open)
+          if (!open) {
+            setIsAddingNew(false)
+            setSelectedStore(null)
+            setFormData({ store_name: '' })
+            setErrors({})
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{isAddingNew ? 'Add New Store' : 'Edit Store'}</DialogTitle>
+            <DialogDescription>
+              {isAddingNew ? 'Create a new store profile' : 'Update store information'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="store_name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Store Name <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="store_name"
+                value={formData.store_name}
+                onChange={(e) => {
+                  setFormData({ ...formData, store_name: e.target.value })
+                  if (errors.store_name) {
+                    setErrors({ ...errors, store_name: undefined })
+                  }
+                }}
+                className={errors.store_name ? 'border-red-500' : ''}
+              />
+              {errors.store_name && <p className="text-sm text-red-500 mt-1">{errors.store_name}</p>}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (isSaving) return
+                setIsFormDialogOpen(false)
+                setIsAddingNew(false)
+                setSelectedStore(null)
+                setFormData({ store_name: '' })
+                setErrors({})
+              }}
+              disabled={isSaving}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit} disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isAddingNew ? 'Creating...' : 'Saving...'}
+                </>
+              ) : (
+                isAddingNew ? 'Create' : 'Save'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
         <DialogContent>
           <DialogHeader>

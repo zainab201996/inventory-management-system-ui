@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Loader2, AlertTriangle } from 'lucide-react'
+import { Loader2, AlertTriangle, Package, Layers, TrendingUp, AlertCircle } from 'lucide-react'
 import { apiClient } from '@/lib/api-client'
-import { Item, OpeningStock } from '@/types'
+import { Item, OpeningStock, InventoryDashboardKPIs } from '@/types'
+import { formatCurrency, formatNumber } from '@/lib/utils'
 
 interface LowStockRow {
   item_id: number
@@ -23,6 +24,9 @@ export function DashboardPage() {
   const [items, setItems] = useState<Item[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
+  const [kpis, setKpis] = useState<InventoryDashboardKPIs | null>(null)
+  const [kpiLoading, setKpiLoading] = useState<boolean>(false)
+  const [kpiError, setKpiError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchItemsWithStocks = async () => {
@@ -73,6 +77,29 @@ export function DashboardPage() {
     return isNaN(n) || n < 0 ? 0 : n
   }, [threshold])
 
+  useEffect(() => {
+    const fetchDashboardKpis = async () => {
+      setKpiLoading(true)
+      setKpiError(null)
+      try {
+        const response = await apiClient.getInventoryDashboard(numericThreshold)
+        if (response.success && response.data) {
+          setKpis(response.data)
+        } else {
+          setKpis(null)
+          setKpiError(response.message || 'Failed to load dashboard KPIs')
+        }
+      } catch (err: any) {
+        setKpis(null)
+        setKpiError(err?.message || 'Failed to load dashboard KPIs')
+      } finally {
+        setKpiLoading(false)
+      }
+    }
+
+    fetchDashboardKpis()
+  }, [numericThreshold])
+
   const lowStockRows: LowStockRow[] = useMemo(() => {
     if (!items.length) return []
 
@@ -117,6 +144,116 @@ export function DashboardPage() {
           </p>
         </div>
       </div>
+
+      <Card className="border-0 bg-transparent shadow-none p-0">
+        <CardContent className="p-0">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="relative overflow-hidden rounded-xl bg-white text-gray-900 border border-gray-200 dark:bg-slate-900 dark:text-slate-50 dark:border-slate-800">
+              <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 via-white to-white dark:from-sky-500/10 dark:via-slate-900 dark:to-slate-900" />
+              <div className="relative z-10 p-5 flex flex-col h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-slate-300">Total Stock Quantity</p>
+                  <div className="h-9 w-9 rounded-full bg-sky-500/10 dark:bg-sky-500/15 flex items-center justify-center text-sky-500 dark:text-sky-400">
+                    <Package className="h-4 w-4" />
+                  </div>
+                </div>
+                <p className="text-3xl font-semibold tracking-tight">
+                  {kpiLoading ? (
+                    <span className="inline-flex items-center text-gray-500 dark:text-slate-400 text-base">
+                      <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                      Loading...
+                    </span>
+                  ) : kpis ? (
+                    formatNumber(kpis.total_stock_qty)
+                  ) : (
+                    '--'
+                  )}
+                </p>
+                <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
+                  Current quantity across all items and stores.
+                </p>
+              </div>
+            </div>
+
+            <div className="relative overflow-hidden rounded-xl bg-white text-gray-900 border border-gray-200 dark:bg-slate-900 dark:text-slate-50 dark:border-slate-800">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-white to-white dark:from-emerald-500/10 dark:via-slate-900 dark:to-slate-900" />
+              <div className="relative z-10 p-5 flex flex-col h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-slate-300">Total Stock Value</p>
+                  <div className="h-9 w-9 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 flex items-center justify-center text-emerald-500 dark:text-emerald-400">
+                    <Layers className="h-4 w-4" />
+                  </div>
+                </div>
+                <p className="text-3xl font-semibold tracking-tight">
+                  {kpiLoading ? (
+                    <span className="inline-flex items-center text-gray-500 dark:text-slate-400 text-base">
+                      <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                      Loading...
+                    </span>
+                  ) : kpis ? (
+                    formatCurrency(kpis.total_stock_value)
+                  ) : (
+                    '--'
+                  )}
+                </p>
+                <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
+                  Monetary value of all current stock based on latest rates.
+                </p>
+              </div>
+            </div>
+
+            <div className="relative overflow-hidden rounded-xl bg-white text-gray-900 border border-gray-200 dark:bg-slate-900 dark:text-slate-50 dark:border-slate-800">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-white to-white dark:from-indigo-500/10 dark:via-slate-900 dark:to-slate-900" />
+              <div className="relative z-10 p-5 flex flex-col h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-slate-300">Low Stock Items</p>
+                  <div className="h-9 w-9 rounded-full bg-indigo-500/10 dark:bg-indigo-500/15 flex items-center justify-center text-indigo-500 dark:text-indigo-400">
+                    <TrendingUp className="h-4 w-4" />
+                  </div>
+                </div>
+                <p className="text-3xl font-semibold tracking-tight">
+                  {kpiLoading ? (
+                    <span className="inline-flex items-center text-gray-500 dark:text-slate-400 text-base">
+                      <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                      Loading...
+                    </span>
+                  ) : kpis ? (
+                    formatNumber(kpis.total_low_stock_items)
+                  ) : (
+                    '--'
+                  )}
+                </p>
+                <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
+                  Item-store combinations below the current low stock threshold.
+                </p>
+              </div>
+            </div>
+
+            <div className="relative overflow-hidden rounded-xl bg-white text-gray-900 border border-gray-200 dark:bg-slate-900 dark:text-slate-50 dark:border-slate-800">
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-white to-white dark:from-amber-500/10 dark:via-slate-900 dark:to-slate-900" />
+              <div className="relative z-10 p-5 flex flex-col h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm font-medium text-gray-600 dark:text-slate-300">Active Threshold</p>
+                  <div className="h-9 w-9 rounded-full bg-amber-500/10 dark:bg-amber-500/15 flex items-center justify-center text-amber-500 dark:text-amber-400">
+                    <AlertCircle className="h-4 w-4" />
+                  </div>
+                </div>
+                <p className="text-3xl font-semibold tracking-tight">
+                  {kpis ? formatNumber(kpis.threshold) : formatNumber(numericThreshold)}
+                </p>
+                <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
+                  Stock levels below this quantity are flagged as low.
+                </p>
+              </div>
+            </div>
+          </div>
+          {kpiError && (
+            <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+              {kpiError}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

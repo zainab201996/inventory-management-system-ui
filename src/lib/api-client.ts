@@ -96,7 +96,8 @@ import {
   StockReport,
   StockReportFilters,
   StockTransferDetailReport,
-  StockTransferDetailReportFilters
+  StockTransferDetailReportFilters,
+  InventoryDashboardKPIs
 } from '@/types';
 import { getUserFriendlyApiErrorMessage } from '@/lib/utils';
 
@@ -1593,6 +1594,12 @@ class ApiClient {
   async getStockTransferDetailReport(filters: StockTransferDetailReportFilters): Promise<ApiResponse<StockTransferDetailReport>> {
     const queryString = this.buildQueryString(filters as Record<string, any>);
     return this.request<StockTransferDetailReport>(`/api/reports/store-transfer-detail${queryString}`);
+  }
+
+  // Inventory Dashboard
+  async getInventoryDashboard(threshold: number): Promise<ApiResponse<InventoryDashboardKPIs>> {
+    const queryString = this.buildQueryString({ threshold });
+    return this.request<InventoryDashboardKPIs>(`/api/dashboard${queryString}`);
   }
 }
 

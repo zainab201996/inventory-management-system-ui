@@ -1140,6 +1140,14 @@ export interface StoreSourceWithStock {
   current_stock: number;
 }
 
+// Inventory Dashboard KPIs
+export interface InventoryDashboardKPIs {
+  total_stock_qty: number;
+  total_stock_value: number;
+  total_low_stock_items: number;
+  threshold: number;
+}
+
 // Store Wise Stock Report Types (Store Wise Stock Report API)
 export interface StockReportFilters {
   fromDate: string;
